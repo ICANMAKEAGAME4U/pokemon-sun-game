@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon Sun Game</title>
+    <title>Pokémon Sun - Complete Edition</title>
     <style>
         * {
             margin: 0;
@@ -16,85 +16,90 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #1a1a1a;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             font-family: Arial, sans-serif;
             color: #fff;
         }
 
-        #game-container {
+        #main-container {
             display: flex;
             gap: 20px;
             background-color: #222;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            max-width: 1400px;
         }
 
-        #gameCanvas {
-            border: 3px solid #444;
-            background-color: #000;
-            display: block;
-        }
-
-        #ui-panel {
+        .screen {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            min-width: 250px;
+            border: 3px solid #444;
+            border-radius: 5px;
+            background: #000;
         }
 
-        #player-info {
+        #game-screen {
+            width: 800px;
+            height: 600px;
+            position: relative;
+        }
+
+        #menu-screen {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .menu-panel {
             background-color: #333;
             padding: 15px;
-            border-radius: 5px;
-            border: 2px solid #555;
+            border-bottom: 2px solid #555;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
-        #player-info h3 {
-            margin-bottom: 10px;
+        .menu-panel h2 {
             color: #ffcc00;
-            font-size: 18px;
-        }
-
-        #player-info p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #ccc;
-        }
-
-        #time-display {
-            background-color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            border: 2px solid #555;
-            text-align: center;
-        }
-
-        #time-of-day {
-            font-size: 16px;
-            color: #ffaa00;
-            font-weight: bold;
-        }
-
-        #pokemon-team {
-            background-color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            border: 2px solid #555;
-        }
-
-        #pokemon-team h3 {
             margin-bottom: 10px;
-            color: #ff6464;
             font-size: 16px;
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 5px;
+        }
+
+        .menu-item {
+            background-color: #444;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            border-left: 3px solid #ff6464;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background-color: #555;
+            border-left-color: #ffaa00;
+        }
+
+        .menu-item.selected {
+            background-color: #556;
+            border-left-color: #ffcc00;
         }
 
         .pokemon-item {
             background-color: #444;
             padding: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-radius: 3px;
             border-left: 3px solid #ffcc00;
+            font-size: 12px;
         }
 
         .pokemon-name {
@@ -103,47 +108,402 @@
         }
 
         .pokemon-stats {
-            font-size: 12px;
             color: #aaa;
-            margin-top: 5px;
+            margin-top: 3px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .button {
+            background-color: #ff6464;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px 0;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .button:hover {
+            background-color: #ff8080;
+        }
+
+        .button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+
+        .battle-menu {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .battle-menu.active {
+            display: flex;
+        }
+
+        .move-btn {
+            background-color: #4444ff;
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+
+        .move-btn:hover {
+            background-color: #6666ff;
+        }
+
+        .battle-log {
+            background-color: #1a1a1a;
+            padding: 10px;
+            height: 100px;
+            overflow-y: auto;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+
+        .battle-log-entry {
+            margin-bottom: 5px;
+            padding: 3px;
+            border-left: 2px solid #ffaa00;
+            padding-left: 5px;
+        }
+
+        .story-panel {
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .story-text {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 3px;
+        }
+
+        .island-marker {
+            display: inline-block;
+            background-color: #ffcc00;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 10px;
+            margin: 2px;
+        }
+
+        .legendary-marker {
+            display: inline-block;
+            background-color: #ff6464;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 10px;
+            margin: 2px;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            border: 3px solid #ffcc00;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #ffcc00;
+            margin-bottom: 15px;
+        }
+
+        .modal-content button {
+            margin: 10px;
+        }
+
+        .starter-option {
+            background-color: #444;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 2px solid #555;
+            transition: all 0.2s;
+        }
+
+        .starter-option:hover {
+            background-color: #555;
+            border-color: #ffcc00;
+        }
+
+        .encounter-text {
+            font-size: 14px;
+            color: #ffcc00;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div id="ui-panel">
-            <div id="player-info">
-                <h3 id="player-name">Trainer</h3>
-                <p id="player-level">Level: 1</p>
-                <p id="pokemon-count">Pokémon: 0/6</p>
+    <div id="main-container">
+        <!-- Left Screen - Game -->
+        <div class="screen" id="game-screen">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+
+        <!-- Right Screen - Menu -->
+        <div class="screen" id="menu-screen">
+            <!-- Tabs -->
+            <div style="display: flex; border-bottom: 2px solid #555;">
+                <button class="menu-tab" data-tab="status" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Status</button>
+                <button class="menu-tab" data-tab="team" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Team</button>
+                <button class="menu-tab" data-tab="islands" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Islands</button>
+                <button class="menu-tab" data-tab="story" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Story</button>
             </div>
-            <div id="time-display">
-                <p id="time-of-day">Time: Day</p>
+
+            <!-- Status Tab -->
+            <div class="menu-panel" id="status-tab" style="display: block;">
+                <h2>Status</h2>
+                <div style="font-size: 14px;">
+                    <p><strong>Trainer:</strong> <span id="trainer-name">New Trainer</span></p>
+                    <p><strong>Level:</strong> <span id="trainer-level">1</span></p>
+                    <p><strong>Pokédex:</strong> <span id="pokedex-count">0</span></p>
+                    <p><strong>Current Island:</strong> <span id="current-island">Melemele</span></p>
+                    <p><strong>Time:</strong> <span id="current-time">Day</span></p>
+                </div>
+                <hr style="border: 1px solid #555; margin: 15px 0;">
+                <div id="battle-status" style="display: none;">
+                    <h2>Battle</h2>
+                    <div class="pokemon-item">
+                        <div class="pokemon-name" id="player-pokemon-name">---</div>
+                        <div class="pokemon-stats">
+                            <div class="stats-row">
+                                <span>Lv. <span id="player-pokemon-level">1</span></span>
+                                <span>HP: <span id="player-pokemon-hp">0</span>/<span id="player-pokemon-maxhp">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pokemon-item">
+                        <div class="pokemon-name" id="wild-pokemon-name">---</div>
+                        <div class="pokemon-stats">
+                            <div class="stats-row">
+                                <span>Lv. <span id="wild-pokemon-level">1</span></span>
+                                <span>HP: <span id="wild-pokemon-hp">0</span>/<span id="wild-pokemon-maxhp">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="battle-menu" id="battle-actions">
+                        <button class="button move-btn" id="move-1">Move 1</button>
+                        <button class="button move-btn" id="move-2">Move 2</button>
+                        <button class="button move-btn" id="move-3">Move 3</button>
+                        <button class="button move-btn" id="move-4">Move 4</button>
+                    </div>
+                    <div class="battle-log" id="battle-log"></div>
+                </div>
             </div>
-            <div id="pokemon-team">
-                <h3>Your Team</h3>
+
+            <!-- Team Tab -->
+            <div class="menu-panel" id="team-tab" style="display: none;">
+                <h2>Your Team</h2>
                 <div id="team-list"></div>
+            </div>
+
+            <!-- Islands Tab -->
+            <div class="menu-panel" id="islands-tab" style="display: none;">
+                <h2>Islands</h2>
+                <div id="islands-list"></div>
+            </div>
+
+            <!-- Story Tab -->
+            <div class="menu-panel" id="story-tab" style="display: none;">
+                <h2>Story</h2>
+                <div class="story-panel" id="story-content"></div>
             </div>
         </div>
     </div>
 
+    <!-- Modal for Starters and Events -->
+    <div id="modal">
+        <div class="modal-content">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
     <script>
-        // Vector utility
-        class Vector {
-            constructor(x = 0, y = 0) {
-                this.x = x;
-                this.y = y;
+        // ===== GAME DATA =====
+        const POKEMON_DATA = {
+            pikachu: { name: 'Pikachu', level: 5, hp: 35, attack: 55, defense: 40, spAtk: 50, spDef: 50, speed: 90, moves: ['Thunderbolt', 'Quick Attack', 'Thunder Wave'], legendary: false },
+            charmander: { name: 'Charmander', level: 5, hp: 39, attack: 52, defense: 43, spAtk: 60, spDef: 50, speed: 65, moves: ['Flamethrower', 'Ember', 'Scratch'], legendary: false },
+            squirtle: { name: 'Squirtle', level: 5, hp: 44, attack: 48, defense: 65, spAtk: 50, spDef: 64, speed: 43, moves: ['Hydro Pump', 'Bubble', 'Tackle'], legendary: false },
+            pidgeot: { name: 'Pidgeot', level: 8, hp: 83, attack: 100, defense: 75, spAtk: 70, spDef: 70, speed: 91, moves: ['Wing Attack', 'Peck', 'Gust'], legendary: false },
+            raticate: { name: 'Raticate', level: 7, hp: 55, attack: 81, defense: 60, spAtk: 80, spDef: 35, speed: 97, moves: ['Quick Attack', 'Bite', 'Tackle'], legendary: false },
+            tapu_koko: { name: 'Tapu Koko', level: 60, hp: 70, attack: 115, defense: 85, spAtk: 95, spDef: 95, speed: 130, moves: ['Thunderbolt', 'Divine Wrath', 'Close Combat'], legendary: true },
+            tapu_lele: { name: 'Tapu Lele', level: 60, hp: 70, attack: 85, defense: 95, spAtk: 130, spDef: 95, speed: 95, moves: ['Psychic', 'Dazzling Gleam', 'Focus Blast'], legendary: true },
+            tapu_bulu: { name: 'Tapu Bulu', level: 60, hp: 70, attack: 125, defense: 115, spAtk: 80, spDef: 95, speed: 75, moves: ['Wood Hammer', 'Horn Leech', 'Superpower'], legendary: true },
+            tapu_fini: { name: 'Tapu Fini', level: 60, hp: 70, attack: 75, defense: 115, spAtk: 95, spDef: 130, speed: 85, moves: ['Hydro Pump', 'Moonblast', 'Calm Mind'], legendary: true }
+        };
+
+        const ISLANDS = [
+            { name: 'Melemele', pokemon: ['pikachu', 'pidgeot', 'raticate'], legendary: 'tapu_koko', visited: false },
+            { name: 'Akala', pokemon: ['charmander', 'pidgeot'], legendary: 'tapu_lele', visited: false },
+            { name: 'Ula\'ula', pokemon: ['squirtle', 'raticate'], legendary: 'tapu_bulu', visited: false },
+            { name: 'Poni', pokemon: ['pikachu', 'charmander', 'squirtle'], legendary: 'tapu_fini', visited: false }
+        ];
+
+        const STORY = [
+            "Welcome to Pokémon Sun! You begin your journey as a young trainer in the Alola region.",
+            "The four islands of Alola are each protected by a guardian Pokémon called Tapu.",
+            "Your goal is to travel through all islands, catch Pokémon, and find the legendary Tapu guardians.",
+            "Each Tapu has unique powers and will test your skills as a trainer.",
+            "On Melemele Island, you encounter Tapu Koko, the guardian of light and electricity.",
+            "Travel to Akala Island to face Tapu Lele, the guardian of mind and emotion.",
+            "Ula'ula Island holds Tapu Bulu, the guardian of nature and life.",
+            "Finally, reach Poni Island to encounter Tapu Fini, the guardian of water and healing.",
+            "Legend says that trainers who catch all four Tapu guardians will unlock a secret power...",
+            "Are you ready to become the Champion of Alola?"
+        ];
+
+        // ===== CLASSES =====
+        class Pokemon {
+            constructor(species, level = 1) {
+                const data = POKEMON_DATA[species];
+                this.name = data.name;
+                this.species = species;
+                this.level = level;
+                this.hp = data.hp;
+                this.maxHP = data.hp;
+                this.attack = data.attack;
+                this.defense = data.defense;
+                this.spAtk = data.spAtk;
+                this.spDef = data.spDef;
+                this.speed = data.speed;
+                this.moves = data.moves;
+                this.legendary = data.legendary;
             }
-            add(other) {
-                return new Vector(this.x + other.x, this.y + other.y);
+
+            takeDamage(damage) {
+                this.hp = Math.max(0, this.hp - damage);
             }
-            multiply(scalar) {
-                return new Vector(this.x * scalar, this.y * scalar);
+
+            heal() {
+                this.hp = this.maxHP;
+            }
+
+            isFainted() {
+                return this.hp <= 0;
             }
         }
 
-        // Input handler
+        class Player {
+            constructor(name) {
+                this.name = name;
+                this.level = 1;
+                this.team = [];
+                this.caught = {};
+                this.currentIsland = 0;
+                this.position = { x: 400, y: 300 };
+                this.width = 32;
+                this.height = 32;
+                this.direction = 'down';
+                this.speed = 3;
+            }
+
+            addPokemon(pokemon) {
+                if (this.team.length < 6) {
+                    this.team.push(pokemon);
+                    const key = pokemon.species;
+                    this.caught[key] = true;
+                    return true;
+                }
+                return false;
+            }
+
+            update(input) {
+                const { dx, dy } = input;
+                if (dx !== 0 || dy !== 0) {
+                    if (dx < 0) this.direction = 'left';
+                    if (dx > 0) this.direction = 'right';
+                    if (dy < 0) this.direction = 'up';
+                    if (dy > 0) this.direction = 'down';
+                    this.position.x += dx * this.speed;
+                    this.position.y += dy * this.speed;
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = '#ff6464';
+                ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.position.x + 8, this.position.y + 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class World {
+            constructor() {
+                this.tileSize = 32;
+                this.tiles = this.generateMap();
+            }
+
+            generateMap() {
+                const tiles = [];
+                const tilesY = 600 / this.tileSize;
+                const tilesX = 800 / this.tileSize;
+                for (let y = 0; y < tilesY; y++) {
+                    const row = [];
+                    for (let x = 0; x < tilesX; x++) {
+                        if (y < 5) row.push(0);
+                        else if (y < 10) row.push(1);
+                        else row.push(0);
+                    }
+                    tiles.push(row);
+                }
+                return tiles;
+            }
+
+            draw(ctx) {
+                const tileColors = { 0: '#64c864', 1: '#6496c8' };
+                for (let y = 0; y < this.tiles.length; y++) {
+                    for (let x = 0; x < this.tiles[y].length; x++) {
+                        const tile = this.tiles[y][x];
+                        const color = tileColors[tile];
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize);
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize);
+                    }
+                }
+            }
+        }
+
         class InputHandler {
             constructor() {
                 this.keys = {};
@@ -154,215 +514,275 @@
                     this.keys[e.key.toLowerCase()] = false;
                 });
             }
-            getMovementDirection() {
+
+            getMovement() {
                 let dx = 0, dy = 0;
-                if (this.isKeyPressed('arrowup') || this.isKeyPressed('w')) dy = -1;
-                if (this.isKeyPressed('arrowdown') || this.isKeyPressed('s')) dy = 1;
-                if (this.isKeyPressed('arrowleft') || this.isKeyPressed('a')) dx = -1;
-                if (this.isKeyPressed('arrowright') || this.isKeyPressed('d')) dx = 1;
+                if (this.keys['arrowup'] || this.keys['w']) dy = -1;
+                if (this.keys['arrowdown'] || this.keys['s']) dy = 1;
+                if (this.keys['arrowleft'] || this.keys['a']) dx = -1;
+                if (this.keys['arrowright'] || this.keys['d']) dx = 1;
                 return { dx, dy };
             }
-            isKeyPressed(key) {
-                return this.keys[key.toLowerCase()] || false;
-            }
         }
 
-        // Pokemon class
-        class Pokemon {
-            constructor(name, species, level = 1) {
-                this.name = name;
-                this.species = species;
-                this.level = level;
-                this.hp = 100;
-                this.maxHP = 100;
-                this.moves = [];
-            }
-            addMove(move) {
-                if (this.moves.length < 4) this.moves.push(move);
-            }
-        }
-
-        // Player class
-        class Player {
-            constructor(name, x, y) {
-                this.name = name;
-                this.position = new Vector(x, y);
-                this.width = 32;
-                this.height = 32;
-                this.speed = 3;
-                this.direction = 'down';
-                this.pokemonTeam = [];
-                this.level = 1;
-            }
-            update(input) {
-                const { dx, dy } = input.getMovementDirection();
-                if (dx !== 0 || dy !== 0) {
-                    if (dx < 0) this.direction = 'left';
-                    if (dx > 0) this.direction = 'right';
-                    if (dy < 0) this.direction = 'up';
-                    if (dy > 0) this.direction = 'down';
-                    this.position.x += dx * this.speed;
-                    this.position.y += dy * this.speed;
-                }
-            }
-            draw(ctx) {
-                ctx.fillStyle = '#ff6464';
-                ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(this.position.x + 8, this.position.y + 8, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            addPokemon(pokemon) {
-                if (this.pokemonTeam.length < 6) {
-                    this.pokemonTeam.push(pokemon);
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        // World class
-        class World {
-            constructor(width, height) {
-                this.width = width;
-                this.height = height;
-                this.tileSize = 32;
-                this.tiles = this.generateMap();
-            }
-            generateMap() {
-                const tiles = [];
-                const tilesY = this.height / this.tileSize;
-                const tilesX = this.width / this.tileSize;
-                for (let y = 0; y < tilesY; y++) {
-                    const row = [];
-                    for (let x = 0; x < tilesX; x++) {
-                        if (y < 5) row.push(0); // Grass
-                        else if (y < 10) row.push(1); // Water
-                        else row.push(0); // Grass
-                    }
-                    tiles.push(row);
-                }
-                return tiles;
-            }
-            draw(ctx) {
-                const tileColors = { 0: '#64c864', 1: '#6496c8', 2: '#969696' };
-                for (let y = 0; y < this.tiles.length; y++) {
-                    for (let x = 0; x < this.tiles[y].length; x++) {
-                        const tile = this.tiles[y][x];
-                        const color = tileColors[tile] || '#64c864';
-                        const tileX = x * this.tileSize;
-                        const tileY = y * this.tileSize;
-                        ctx.fillStyle = color;
-                        ctx.fillRect(tileX, tileY, this.tileSize, this.tileSize);
-                        ctx.strokeStyle = '#000';
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(tileX, tileY, this.tileSize, this.tileSize);
-                    }
-                }
-            }
-        }
-
-        // Game state
-        class GameState {
-            constructor() {
-                this.timeOfDay = 'day';
-                this.gameTime = 0;
-            }
-            update() {
-                this.gameTime++;
-                const hour = (this.gameTime / 150) % 24;
-                if (hour >= 6 && hour < 12) this.timeOfDay = 'morning';
-                else if (hour >= 12 && hour < 17) this.timeOfDay = 'afternoon';
-                else if (hour >= 17 && hour < 20) this.timeOfDay = 'evening';
-                else this.timeOfDay = 'night';
-            }
-        }
-
-        // Main Game class
+        // ===== MAIN GAME =====
         class Game {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
                 this.ctx = this.canvas.getContext('2d');
-                this.width = this.canvas.width;
-                this.height = this.canvas.height;
-                this.running = true;
-
                 this.input = new InputHandler();
-                this.gameState = new GameState();
-                this.world = new World(this.width, this.height);
-                this.player = new Player('Trainer', this.width / 2, this.height / 2);
+                this.world = new World();
+                this.player = null;
+                this.gameTime = 0;
+                this.gameState = 'starter'; // starter, exploration, battle
+                this.currentBattle = null;
+                this.wildPokemon = null;
+                this.battleLog = [];
 
-                // Add starter Pokemon
-                const pikachu = new Pokemon('Pikachu', 'Pikachu', 5);
-                pikachu.addMove({ name: 'Thunderbolt', power: 90 });
-                this.player.addPokemon(pikachu);
-
-                const charizard = new Pokemon('Charizard', 'Charizard', 5);
-                charizard.addMove({ name: 'Flamethrower', power: 90 });
-                this.player.addPokemon(charizard);
-
-                console.log('Game initialized with', this.player.pokemonTeam.length, 'Pokemon');
-                console.log('Team:', this.player.pokemonTeam);
-
+                this.setupUI();
+                this.showStarterSelection();
                 this.gameLoop();
             }
 
-            update() {
-                this.gameState.update();
-                this.player.update(this.input);
-                this.clampPlayer();
-                this.updateUI();
+            setupUI() {
+                document.querySelectorAll('.menu-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabName = e.target.dataset.tab;
+                        this.switchTab(tabName);
+                    });
+                });
             }
 
-            clampPlayer() {
-                if (this.player.position.x < 0) this.player.position.x = 0;
-                if (this.player.position.x + this.player.width > this.width) 
-                    this.player.position.x = this.width - this.player.width;
-                if (this.player.position.y < 0) this.player.position.y = 0;
-                if (this.player.position.y + this.player.height > this.height) 
-                    this.player.position.y = this.height - this.player.height;
+            switchTab(tabName) {
+                document.querySelectorAll('.menu-panel').forEach(p => p.style.display = 'none');
+                document.querySelectorAll('.menu-tab').forEach(t => t.style.background = '#555');
+                document.getElementById(`${tabName}-tab`).style.display = 'block';
+                event.target.style.background = '#777';
+            }
+
+            showStarterSelection() {
+                const modal = document.getElementById('modal');
+                const content = document.getElementById('modal-content');
+                content.innerHTML = `
+                    <h2>Choose Your Starter!</h2>
+                    <div class="starter-option" onclick="game.selectStarter('pikachu')">
+                        <strong>Pikachu</strong><br>Electric Type
+                    </div>
+                    <div class="starter-option" onclick="game.selectStarter('charmander')">
+                        <strong>Charmander</strong><br>Fire Type
+                    </div>
+                    <div class="starter-option" onclick="game.selectStarter('squirtle')">
+                        <strong>Squirtle</strong><br>Water Type
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+
+            selectStarter(species) {
+                this.player = new Player('Champion');
+                const starter = new Pokemon(species, 5);
+                this.player.addPokemon(starter);
+                this.gameState = 'exploration';
+                document.getElementById('modal').classList.remove('active');
+                this.updateMenus();
+                this.updateStory();
+            }
+
+            encounterWildPokemon() {
+                const island = ISLANDS[this.player.currentIsland];
+                const species = island.pokemon[Math.floor(Math.random() * island.pokemon.length)];
+                const level = Math.floor(Math.random() * 5) + this.player.level;
+                this.wildPokemon = new Pokemon(species, level);
+                this.gameState = 'battle';
+                this.battleLog = [];
+                this.addBattleLog(`A wild ${this.wildPokemon.name} appeared!`);
+            }
+
+            executeBattle(moveIndex) {
+                if (this.currentBattle.playerPokemon.isFainted() || this.currentBattle.wildPokemon.isFainted()) {
+                    this.endBattle();
+                    return;
+                }
+
+                const playerPoke = this.currentBattle.playerPokemon;
+                const wildPoke = this.currentBattle.wildPokemon;
+
+                // Player attack
+                const dmg = Math.floor(Math.random() * 20) + 10;
+                wildPoke.takeDamage(dmg);
+                this.addBattleLog(`${playerPoke.name} used ${playerPoke.moves[moveIndex]}! ${dmg} damage!`);
+
+                if (wildPoke.isFainted()) {
+                    this.addBattleLog(`${wildPoke.name} fainted!`);
+                    this.endBattle();
+                    return;
+                }
+
+                // Wild attack
+                const wildDmg = Math.floor(Math.random() * 15) + 5;
+                playerPoke.takeDamage(wildDmg);
+                this.addBattleLog(`${wildPoke.name} used ${wildPoke.moves[0]}! ${wildDmg} damage!`);
+
+                if (playerPoke.isFainted()) {
+                    this.addBattleLog(`${playerPoke.name} fainted!`);
+                    this.endBattle();
+                }
+
+                this.updateMenus();
+            }
+
+            endBattle() {
+                if (!this.currentBattle.wildPokemon.isFainted() && Math.random() < 0.3) {
+                    this.player.addPokemon(this.currentBattle.wildPokemon);
+                    this.addBattleLog(`Caught ${this.currentBattle.wildPokemon.name}!`);
+                }
+                this.gameState = 'exploration';
+                this.currentBattle = null;
+                this.wildPokemon = null;
+            }
+
+            addBattleLog(msg) {
+                this.battleLog.push(msg);
+                if (this.battleLog.length > 10) this.battleLog.shift();
+            }
+
+            updateMenus() {
+                if (!this.player) return;
+
+                // Status tab
+                document.getElementById('trainer-name').textContent = this.player.name;
+                document.getElementById('trainer-level').textContent = this.player.level;
+                document.getElementById('pokedex-count').textContent = Object.keys(this.player.caught).length;
+                document.getElementById('current-island').textContent = ISLANDS[this.player.currentIsland].name;
+                const hour = (this.gameTime / 150) % 24;
+                let timeOfDay = 'Day';
+                if (hour >= 6 && hour < 12) timeOfDay = 'Morning';
+                else if (hour >= 12 && hour < 17) timeOfDay = 'Afternoon';
+                else if (hour >= 17 && hour < 20) timeOfDay = 'Evening';
+                else timeOfDay = 'Night';
+                document.getElementById('current-time').textContent = timeOfDay;
+
+                // Team tab
+                const teamList = document.getElementById('team-list');
+                teamList.innerHTML = '';
+                this.player.team.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'pokemon-item';
+                    div.innerHTML = `
+                        <div class="pokemon-name">${p.name}${p.legendary ? ' ⭐' : ''}</div>
+                        <div class="pokemon-stats">
+                            <div class="stats-row">
+                                <span>Lv. ${p.level}</span>
+                                <span>HP: ${p.hp}/${p.maxHP}</span>
+                            </div>
+                        </div>
+                    `;
+                    teamList.appendChild(div);
+                });
+
+                // Islands tab
+                const islandsList = document.getElementById('islands-list');
+                islandsList.innerHTML = '';
+                ISLANDS.forEach((island, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'menu-item';
+                    div.innerHTML = `
+                        <strong>${island.name}</strong><br>
+                        <small>Tapu: ${POKEMON_DATA[island.legendary].name}</small>
+                    `;
+                    div.style.cursor = 'pointer';
+                    div.onclick = () => { this.player.currentIsland = i; this.updateMenus(); };
+                    islandsList.appendChild(div);
+                });
+
+                // Battle status
+                if (this.gameState === 'battle' && this.currentBattle) {
+                    document.getElementById('battle-status').style.display = 'block';
+                    document.getElementById('player-pokemon-name').textContent = this.currentBattle.playerPokemon.name;
+                    document.getElementById('player-pokemon-level').textContent = this.currentBattle.playerPokemon.level;
+                    document.getElementById('player-pokemon-hp').textContent = this.currentBattle.playerPokemon.hp;
+                    document.getElementById('player-pokemon-maxhp').textContent = this.currentBattle.playerPokemon.maxHP;
+                    document.getElementById('wild-pokemon-name').textContent = this.currentBattle.wildPokemon.name;
+                    document.getElementById('wild-pokemon-level').textContent = this.currentBattle.wildPokemon.level;
+                    document.getElementById('wild-pokemon-hp').textContent = this.currentBattle.wildPokemon.hp;
+                    document.getElementById('wild-pokemon-maxhp').textContent = this.currentBattle.wildPokemon.maxHP;
+
+                    const poke = this.currentBattle.playerPokemon;
+                    ['move-1', 'move-2', 'move-3', 'move-4'].forEach((id, i) => {
+                        const btn = document.getElementById(id);
+                        btn.textContent = poke.moves[i] || 'Empty';
+                        btn.onclick = () => this.executeBattle(i);
+                    });
+
+                    const log = document.getElementById('battle-log');
+                    log.innerHTML = this.battleLog.map(l => `<div class="battle-log-entry">${l}</div>`).join('');
+                } else {
+                    document.getElementById('battle-status').style.display = 'none';
+                }
+            }
+
+            updateStory() {
+                const storyContent = document.getElementById('story-content');
+                storyContent.innerHTML = STORY.map(text => `<div class="story-text">${text}</div>`).join('');
+            }
+
+            update() {
+                if (!this.player) return;
+
+                this.gameTime++;
+
+                if (this.gameState === 'exploration') {
+                    const { dx, dy } = this.input.getMovement();
+                    this.player.update({ dx, dy });
+
+                    // Clamp position
+                    this.player.position.x = Math.max(0, Math.min(this.player.position.x, 800 - this.player.width));
+                    this.player.position.y = Math.max(0, Math.min(this.player.position.y, 600 - this.player.height));
+
+                    // Random encounters
+                    if (Math.random() < 0.001 && this.player.team.length > 0) {
+                        this.currentBattle = {
+                            playerPokemon: this.player.team[0],
+                            wildPokemon: null
+                        };
+                        this.encounterWildPokemon();
+                        this.currentBattle.wildPokemon = this.wildPokemon;
+                    }
+                }
+
+                this.updateMenus();
             }
 
             render() {
                 this.ctx.fillStyle = '#000';
-                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 this.world.draw(this.ctx);
-                this.player.draw(this.ctx);
-                this.drawInfo();
-            }
 
-            drawInfo() {
+                if (this.player) {
+                    this.player.draw(this.ctx);
+                }
+
+                if (this.gameState === 'battle' && this.currentBattle) {
+                    this.renderBattle();
+                }
+
+                // Draw island info
                 this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                this.ctx.fillRect(10, 10, 200, 100);
+                this.ctx.fillRect(10, 10, 250, 80);
                 this.ctx.fillStyle = '#fff';
                 this.ctx.font = 'bold 14px Arial';
-                this.ctx.fillText(`Time: ${this.gameState.timeOfDay}`, 20, 35);
-                this.ctx.fillText(`Pokémon: ${this.player.pokemonTeam.length}/6`, 20, 55);
-                this.ctx.fillText(`Level: ${this.player.level}`, 20, 75);
+                this.ctx.fillText(`Island: ${ISLANDS[this.player.currentIsland].name}`, 20, 35);
+                this.ctx.font = '12px Arial';
+                this.ctx.fillText(`Pokémon: ${this.player.team.length}/6`, 20, 55);
+                this.ctx.fillText(`Caught: ${Object.keys(this.player.caught).length}`, 20, 75);
             }
 
-            updateUI() {
-                document.getElementById('player-name').textContent = this.player.name;
-                document.getElementById('player-level').textContent = `Level: ${this.player.level}`;
-                document.getElementById('pokemon-count').textContent = `Pokémon: ${this.player.pokemonTeam.length}/6`;
-                document.getElementById('time-of-day').textContent = `Time: ${this.gameState.timeOfDay.charAt(0).toUpperCase() + this.gameState.timeOfDay.slice(1)}`;
-                
-                // Update Pokemon team display
-                const teamList = document.getElementById('team-list');
-                teamList.innerHTML = '';
-                
-                this.player.pokemonTeam.forEach((pokemon, index) => {
-                    const pokemonDiv = document.createElement('div');
-                    pokemonDiv.className = 'pokemon-item';
-                    pokemonDiv.innerHTML = `
-                        <div class="pokemon-name">${pokemon.name}</div>
-                        <div class="pokemon-stats">
-                            Lv. ${pokemon.level} | HP: ${pokemon.hp}/${pokemon.maxHP}
-                        </div>
-                    `;
-                    teamList.appendChild(pokemonDiv);
-                });
+            renderBattle() {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.fillText(`${this.currentBattle.playerPokemon.name} vs ${this.currentBattle.wildPokemon.name}`, 250, 100);
             }
 
             gameLoop() {
@@ -372,11 +792,10 @@
             }
         }
 
-        // Start game when page loads
+        // Start game
+        let game;
         window.addEventListener('load', () => {
-            console.log('Game starting...');
-            new Game('gameCanvas');
-            console.log('Game started!');
+            game = new Game();
         });
     </script>
 </body>
