@@ -11,6 +11,7 @@ class Game {
         this.fps = 60;
         this.frameTime = 1000 / this.fps;
         this.lastTime = 0;
+        this.accumulator = 0;
 
         this.initGame();
     }
@@ -117,13 +118,13 @@ class Game {
     gameLoop(currentTime) {
         if (!this.running) return;
 
+        // Calculate delta time
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        if (deltaTime >= this.frameTime) {
-            this.update(deltaTime);
-            this.render();
-        }
+        // Update and render every frame
+        this.update(deltaTime);
+        this.render();
 
         requestAnimationFrame((time) => this.gameLoop(time));
     }
