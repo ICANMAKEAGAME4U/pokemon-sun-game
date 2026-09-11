@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Sun Game</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui-panel">
+            <div id="player-info">
+                <h3 id="player-name">Trainer</h3>
+                <p id="player-level">Level: 1</p>
+                <p id="pokemon-count">Pokémon: 0/6</p>
+            </div>
+            <div id="time-display">
+                <p id="time-of-day">Time: Day</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/utils/vector.js"></script>
+    <script src="js/utils/input.js"></script>
+    <script src="js/entities/pokemon.js"></script>
+    <script src="js/entities/player.js"></script>
+    <script src="js/world/world.js"></script>
+    <script src="js/game/game-state.js"></script>
+    <script src="js/game/battle.js"></script>
+    <script src="js/game/game.js"></script>
+</body>
+</html>
