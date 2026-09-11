@@ -40,7 +40,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            min-width: 200px;
+            min-width: 250px;
         }
 
         #player-info {
@@ -75,6 +75,38 @@
             color: #ffaa00;
             font-weight: bold;
         }
+
+        #pokemon-team {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #555;
+        }
+
+        #pokemon-team h3 {
+            margin-bottom: 10px;
+            color: #ff6464;
+            font-size: 16px;
+        }
+
+        .pokemon-item {
+            background-color: #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            border-left: 3px solid #ffcc00;
+        }
+
+        .pokemon-name {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+
+        .pokemon-stats {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +120,10 @@
             </div>
             <div id="time-display">
                 <p id="time-of-day">Time: Day</p>
+            </div>
+            <div id="pokemon-team">
+                <h3>Your Team</h3>
+                <div id="team-list"></div>
             </div>
         </div>
     </div>
@@ -180,7 +216,9 @@
             addPokemon(pokemon) {
                 if (this.pokemonTeam.length < 6) {
                     this.pokemonTeam.push(pokemon);
+                    return true;
                 }
+                return false;
             }
         }
 
@@ -264,6 +302,9 @@
                 charizard.addMove({ name: 'Flamethrower', power: 90 });
                 this.player.addPokemon(charizard);
 
+                console.log('Game initialized with', this.player.pokemonTeam.length, 'Pokemon');
+                console.log('Team:', this.player.pokemonTeam);
+
                 this.gameLoop();
             }
 
@@ -306,6 +347,22 @@
                 document.getElementById('player-level').textContent = `Level: ${this.player.level}`;
                 document.getElementById('pokemon-count').textContent = `Pokémon: ${this.player.pokemonTeam.length}/6`;
                 document.getElementById('time-of-day').textContent = `Time: ${this.gameState.timeOfDay.charAt(0).toUpperCase() + this.gameState.timeOfDay.slice(1)}`;
+                
+                // Update Pokemon team display
+                const teamList = document.getElementById('team-list');
+                teamList.innerHTML = '';
+                
+                this.player.pokemonTeam.forEach((pokemon, index) => {
+                    const pokemonDiv = document.createElement('div');
+                    pokemonDiv.className = 'pokemon-item';
+                    pokemonDiv.innerHTML = `
+                        <div class="pokemon-name">${pokemon.name}</div>
+                        <div class="pokemon-stats">
+                            Lv. ${pokemon.level} | HP: ${pokemon.hp}/${pokemon.maxHP}
+                        </div>
+                    `;
+                    teamList.appendChild(pokemonDiv);
+                });
             }
 
             gameLoop() {
