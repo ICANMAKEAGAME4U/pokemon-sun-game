@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Sun Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        #game-container {
+            display: flex;
+            gap: 20px;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #gameCanvas {
+            border: 3px solid #444;
+            background-color: #000;
+            display: block;
+        }
+
+        #ui-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 200px;
+        }
+
+        #player-info {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #555;
+        }
+
+        #player-info h3 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+            font-size: 18px;
+        }
+
+        #player-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        #time-display {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #555;
+            text-align: center;
+        }
+
+        #time-of-day {
+            font-size: 16px;
+            color: #ffaa00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui-panel">
+            <div id="player-info">
+                <h3 id="player-name">Trainer</h3>
+                <p id="player-level">Level: 1</p>
+                <p id="pokemon-count">Pokémon: 0/6</p>
+            </div>
+            <div id="time-display">
+                <p id="time-of-day">Time: Day</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vector utility
+        class Vector {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+            add(other) {
+                return new Vector(this.x + other.x, this.y + other.y);
+            }
+            multiply(scalar) {
+                return new Vector(this.x * scalar, this.y * scalar);
+            }
+        }
+
+        // Input handler
+        class InputHandler {
+            constructor() {
+                this.keys = {};
+                window.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                });
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            }
+            getMovementDirection() {
+                let dx = 0, dy = 0;
+                if (this.isKeyPressed('arrowup') || this.isKeyPressed('w')) dy = -1;
+                if (this.isKeyPressed('arrowdown') || this.isKeyPressed('s')) dy = 1;
+                if (this.isKeyPressed('arrowleft') || this.isKeyPressed('a')) dx = -1;
+                if (this.isKeyPressed('arrowright') || this.isKeyPressed('d')) dx = 1;
+                return { dx, dy };
+            }
+            isKeyPressed(key) {
+                return this.keys[key.toLowerCase()] || false;
+            }
+        }
+
+        // Pokemon class
+        class Pokemon {
+            constructor(name, species, level = 1) {
+                this.name = name;
+                this.species = species;
+                this.level = level;
+                this.hp = 100;
+                this.maxHP = 100;
+                this.moves = [];
+            }
+            addMove(move) {
+                if (this.moves.length < 4) this.moves.push(move);
+            }
+        }
+
+        // Player class
+        class Player {
+            constructor(name, x, y) {
+                this.name = name;
+                this.position = new Vector(x, y);
+                this.width = 32;
+                this.height = 32;
+                this.speed = 3;
+                this.direction = 'down';
+                this.pokemonTeam = [];
+                this.level = 1;
+            }
+            update(input) {
+                const { dx, dy } = input.getMovementDirection();
+                if (dx !== 0 || dy !== 0) {
+                    if (dx < 0) this.direction = 'left';
+                    if (dx > 0) this.direction = 'right';
+                    if (dy < 0) this.direction = 'up';
+                    if (dy > 0) this.direction = 'down';
+                    this.position.x += dx * this.speed;
+                    this.position.y += dy * this.speed;
+                }
+            }
+            draw(ctx) {
+                ctx.fillStyle = '#ff6464';
+                ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.position.x + 8, this.position.y + 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            addPokemon(pokemon) {
+                if (this.pokemonTeam.length < 6) {
+                    this.pokemonTeam.push(pokemon);
+                }
+            }
+        }
+
+        // World class
+        class World {
+            constructor(width, height) {
+                this.width = width;
+                this.height = height;
+                this.tileSize = 32;
+                this.tiles = this.generateMap();
+            }
+            generateMap() {
+                const tiles = [];
+                const tilesY = this.height / this.tileSize;
+                const tilesX = this.width / this.tileSize;
+                for (let y = 0; y < tilesY; y++) {
+                    const row = [];
+                    for (let x = 0; x < tilesX; x++) {
+                        if (y < 5) row.push(0); // Grass
+                        else if (y < 10) row.push(1); // Water
+                        else row.push(0); // Grass
+                    }
+                    tiles.push(row);
+                }
+                return tiles;
+            }
+            draw(ctx) {
+                const tileColors = { 0: '#64c864', 1: '#6496c8', 2: '#969696' };
+                for (let y = 0; y < this.tiles.length; y++) {
+                    for (let x = 0; x < this.tiles[y].length; x++) {
+                        const tile = this.tiles[y][x];
+                        const color = tileColors[tile] || '#64c864';
+                        const tileX = x * this.tileSize;
+                        const tileY = y * this.tileSize;
+                        ctx.fillStyle = color;
+                        ctx.fillRect(tileX, tileY, this.tileSize, this.tileSize);
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(tileX, tileY, this.tileSize, this.tileSize);
+                    }
+                }
+            }
+        }
+
+        // Game state
+        class GameState {
+            constructor() {
+                this.timeOfDay = 'day';
+                this.gameTime = 0;
+            }
+            update() {
+                this.gameTime++;
+                const hour = (this.gameTime / 150) % 24;
+                if (hour >= 6 && hour < 12) this.timeOfDay = 'morning';
+                else if (hour >= 12 && hour < 17) this.timeOfDay = 'afternoon';
+                else if (hour >= 17 && hour < 20) this.timeOfDay = 'evening';
+                else this.timeOfDay = 'night';
+            }
+        }
+
+        // Main Game class
+        class Game {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.running = true;
+
+                this.input = new InputHandler();
+                this.gameState = new GameState();
+                this.world = new World(this.width, this.height);
+                this.player = new Player('Trainer', this.width / 2, this.height / 2);
+
+                // Add starter Pokemon
+                const pikachu = new Pokemon('Pikachu', 'Pikachu', 5);
+                pikachu.addMove({ name: 'Thunderbolt', power: 90 });
+                this.player.addPokemon(pikachu);
+
+                const charizard = new Pokemon('Charizard', 'Charizard', 5);
+                charizard.addMove({ name: 'Flamethrower', power: 90 });
+                this.player.addPokemon(charizard);
+
+                this.gameLoop();
+            }
+
+            update() {
+                this.gameState.update();
+                this.player.update(this.input);
+                this.clampPlayer();
+                this.updateUI();
+            }
+
+            clampPlayer() {
+                if (this.player.position.x < 0) this.player.position.x = 0;
+                if (this.player.position.x + this.player.width > this.width) 
+                    this.player.position.x = this.width - this.player.width;
+                if (this.player.position.y < 0) this.player.position.y = 0;
+                if (this.player.position.y + this.player.height > this.height) 
+                    this.player.position.y = this.height - this.player.height;
+            }
+
+            render() {
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.world.draw(this.ctx);
+                this.player.draw(this.ctx);
+                this.drawInfo();
+            }
+
+            drawInfo() {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(10, 10, 200, 100);
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = 'bold 14px Arial';
+                this.ctx.fillText(`Time: ${this.gameState.timeOfDay}`, 20, 35);
+                this.ctx.fillText(`Pokémon: ${this.player.pokemonTeam.length}/6`, 20, 55);
+                this.ctx.fillText(`Level: ${this.player.level}`, 20, 75);
+            }
+
+            updateUI() {
+                document.getElementById('player-name').textContent = this.player.name;
+                document.getElementById('player-level').textContent = `Level: ${this.player.level}`;
+                document.getElementById('pokemon-count').textContent = `Pokémon: ${this.player.pokemonTeam.length}/6`;
+                document.getElementById('time-of-day').textContent = `Time: ${this.gameState.timeOfDay.charAt(0).toUpperCase() + this.gameState.timeOfDay.slice(1)}`;
+            }
+
+            gameLoop() {
+                this.update();
+                this.render();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        // Start game when page loads
+        window.addEventListener('load', () => {
+            console.log('Game starting...');
+            new Game('gameCanvas');
+            console.log('Game started!');
+        });
+    </script>
+</body>
+</html>
