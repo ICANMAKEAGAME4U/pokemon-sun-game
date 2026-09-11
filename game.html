@@ -202,17 +202,6 @@
             margin: 2px;
         }
 
-        .legendary-marker {
-            display: inline-block;
-            background-color: #ff6464;
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 10px;
-            margin: 2px;
-        }
-
         #modal {
             display: none;
             position: fixed;
@@ -220,7 +209,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -232,41 +221,72 @@
 
         .modal-content {
             background-color: #222;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             border: 3px solid #ffcc00;
-            max-width: 400px;
+            max-width: 500px;
             text-align: center;
         }
 
         .modal-content h2 {
             color: #ffcc00;
-            margin-bottom: 15px;
-        }
-
-        .modal-content button {
-            margin: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
 
         .starter-option {
             background-color: #444;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 3px;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
             cursor: pointer;
             border: 2px solid #555;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            font-size: 16px;
         }
 
         .starter-option:hover {
             background-color: #555;
             border-color: #ffcc00;
+            transform: scale(1.05);
         }
 
-        .encounter-text {
-            font-size: 14px;
+        .starter-option strong {
+            display: block;
             color: #ffcc00;
-            margin-bottom: 10px;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .starter-option small {
+            display: block;
+            color: #aaa;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #555;
+        }
+
+        .menu-tab {
+            flex: 1;
+            padding: 10px;
+            background: #555;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .menu-tab:hover {
+            background: #666;
+        }
+
+        .menu-tab.active {
+            background: #777;
+            border-bottom-color: #ffcc00;
         }
     </style>
 </head>
@@ -280,15 +300,15 @@
         <!-- Right Screen - Menu -->
         <div class="screen" id="menu-screen">
             <!-- Tabs -->
-            <div style="display: flex; border-bottom: 2px solid #555;">
-                <button class="menu-tab" data-tab="status" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Status</button>
-                <button class="menu-tab" data-tab="team" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Team</button>
-                <button class="menu-tab" data-tab="islands" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Islands</button>
-                <button class="menu-tab" data-tab="story" style="flex: 1; padding: 10px; background: #555; border: none; color: #fff; cursor: pointer; font-weight: bold;">Story</button>
+            <div class="tabs">
+                <button class="menu-tab active" data-tab="status">Status</button>
+                <button class="menu-tab" data-tab="team">Team</button>
+                <button class="menu-tab" data-tab="islands">Islands</button>
+                <button class="menu-tab" data-tab="story">Story</button>
             </div>
 
             <!-- Status Tab -->
-            <div class="menu-panel" id="status-tab" style="display: block;">
+            <div class="menu-panel" id="status-tab">
                 <h2>Status</h2>
                 <div style="font-size: 14px;">
                     <p><strong>Trainer:</strong> <span id="trainer-name">New Trainer</span></p>
@@ -318,7 +338,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="battle-menu" id="battle-actions">
+                    <div class="battle-menu active" id="battle-actions">
                         <button class="button move-btn" id="move-1">Move 1</button>
                         <button class="button move-btn" id="move-2">Move 2</button>
                         <button class="button move-btn" id="move-3">Move 3</button>
@@ -403,7 +423,7 @@
                 this.spAtk = data.spAtk;
                 this.spDef = data.spDef;
                 this.speed = data.speed;
-                this.moves = data.moves;
+                this.moves = [...data.moves];
                 this.legendary = data.legendary;
             }
 
@@ -555,9 +575,9 @@
 
             switchTab(tabName) {
                 document.querySelectorAll('.menu-panel').forEach(p => p.style.display = 'none');
-                document.querySelectorAll('.menu-tab').forEach(t => t.style.background = '#555');
+                document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
                 document.getElementById(`${tabName}-tab`).style.display = 'block';
-                event.target.style.background = '#777';
+                event.target.classList.add('active');
             }
 
             showStarterSelection() {
@@ -566,19 +586,23 @@
                 content.innerHTML = `
                     <h2>Choose Your Starter!</h2>
                     <div class="starter-option" onclick="game.selectStarter('pikachu')">
-                        <strong>Pikachu</strong><br>Electric Type
+                        <strong>Pikachu</strong>
+                        <small>Electric Type</small>
                     </div>
                     <div class="starter-option" onclick="game.selectStarter('charmander')">
-                        <strong>Charmander</strong><br>Fire Type
+                        <strong>Charmander</strong>
+                        <small>Fire Type</small>
                     </div>
                     <div class="starter-option" onclick="game.selectStarter('squirtle')">
-                        <strong>Squirtle</strong><br>Water Type
+                        <strong>Squirtle</strong>
+                        <small>Water Type</small>
                     </div>
                 `;
                 modal.classList.add('active');
             }
 
             selectStarter(species) {
+                console.log('Starting with:', species);
                 this.player = new Player('Champion');
                 const starter = new Pokemon(species, 5);
                 this.player.addPokemon(starter);
@@ -711,6 +735,7 @@
                     ['move-1', 'move-2', 'move-3', 'move-4'].forEach((id, i) => {
                         const btn = document.getElementById(id);
                         btn.textContent = poke.moves[i] || 'Empty';
+                        btn.disabled = false;
                         btn.onclick = () => this.executeBattle(i);
                     });
 
